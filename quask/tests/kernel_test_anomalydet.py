@@ -47,14 +47,16 @@ def test_0(X_train: np.ndarray, X_test: np.ndarray, y_train: np.ndarray, y_test:
     init_kernel = KernelFactory.create_qiskit_kernel(init_ansatz, "Z" * N_QUBITS, KernelType.FIDELITY)
     qsvm_evaluator = OneClassQSVMEvaluator({ 'nqubits' : 4, 'feature_map': ' ', 'nu_param' : 0.01})
     genetic_optimizer = GenOptimizer(init_kernel, X_train, y_train, qsvm_evaluator)
-
-    for i in range(10):
+    best_optim_kernel = init_kernel
+    
+    for i in range(1):
         optim_kernel = genetic_optimizer.optimize() 
         f1 = qsvm_evaluator.evaluate(optim_kernel, None, X_train, y_train)
         f1_scores.append(f1)
+        max_f1score = max(max_fitn_kern, f1)
         
-        if max_fitn_kern != max(max_fitn_kern, f1):
-            max_fitn_kern = max(max_fitn_kern, f1)
+        if max_fitn_kern != max_f1score:
+            max_fitn_kern = max_f1score
             best_optim_kernel = optim_kernel
 
     kernel_on_test_set = qsvm_evaluator.evaluate_test(best_optim_kernel, None, X_test, y_test)
