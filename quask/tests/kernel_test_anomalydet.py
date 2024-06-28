@@ -1,13 +1,12 @@
-from ..utils.utils_data import *
+from quask.utils.utils_data import *
 import warnings
-from ..optimizer import GenOptimizer
-from ..evaluator import OneClassQSVMEvaluator
-from ..core import Ansatz, KernelFactory, KernelType
+from quask.optimizer import GenOptimizer
+from quask.evaluator import OneClassQSVMEvaluator
+from quask.core import Ansatz, KernelFactory, KernelType
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-warnings.filterwarnings("ignore")
-
+warnings.filterwarnings("ignore")   
 
 def compute_statistics(f1_scores: list):
     #Statistics
@@ -24,7 +23,7 @@ def compute_statistics(f1_scores: list):
         
     )
 
-    statistics_dataframe.to_excel('quask/plot_img/stats.xlsx', sheet_name='Stats', na_rep='NaN', float_format='%.4f', header=True, index=True, index_label='Statistic', startrow=0,
+    statistics_dataframe.to_excel('./quask/plot_img/stats.xlsx', sheet_name='Stats', na_rep='NaN', float_format='%.4f', header=True, index=True, index_label='Statistic', startrow=0,
     startcol=0, engine='openpyxl', freeze_panes=(1, 0))
 
     plt.hist(f1_scores,bins=10, edgecolor='blue')
@@ -33,12 +32,12 @@ def compute_statistics(f1_scores: list):
     plt.xlabel('Value')
     plt.ylabel('Frequency')
     plt.title('Distribution of Total Value')
-    plt.savefig('quask/plot_img/confusion_matrix_test.png', dpi=300, bbox_inches='tight')
+    plt.savefig('./quask/plot_img/confusion_matrix_test.png', dpi=300, bbox_inches='tight')
 
 def test_0(X_train: np.ndarray, X_test: np.ndarray, y_train: np.ndarray, y_test: np.ndarray):
     N_FEATURES = len(X_train[0]) # numero di feature del dataset
-    N_OPERATIONS = 10 # 
-    N_QUBITS = N_FEATURES
+    N_OPERATIONS = 15 # 
+    N_QUBITS = N_FEATURES + 2
     print("N_FEATURES",N_FEATURES)
     f1_scores = []    
     max_fitn_kern = 0
@@ -47,16 +46,14 @@ def test_0(X_train: np.ndarray, X_test: np.ndarray, y_train: np.ndarray, y_test:
     init_kernel = KernelFactory.create_qiskit_kernel(init_ansatz, "Z" * N_QUBITS, KernelType.FIDELITY)
     qsvm_evaluator = OneClassQSVMEvaluator({ 'nqubits' : 4, 'feature_map': ' ', 'nu_param' : 0.01})
     genetic_optimizer = GenOptimizer(init_kernel, X_train, y_train, qsvm_evaluator)
-    best_optim_kernel = init_kernel
-    
-    for i in range(1):
+
+    for i in range(10):
         optim_kernel = genetic_optimizer.optimize() 
         f1 = qsvm_evaluator.evaluate(optim_kernel, None, X_train, y_train)
         f1_scores.append(f1)
-        max_f1score = max(max_fitn_kern, f1)
         
-        if max_fitn_kern != max_f1score:
-            max_fitn_kern = max_f1score
+        if abs(max_fitn_kern) < max(abs(max_fitn_kern), abs(f1)):
+            max_fitn_kern = max(abs(max_fitn_kern), abs(f1))
             best_optim_kernel = optim_kernel
 
     kernel_on_test_set = qsvm_evaluator.evaluate_test(best_optim_kernel, None, X_test, y_test)
@@ -69,16 +66,16 @@ def test_0(X_train: np.ndarray, X_test: np.ndarray, y_train: np.ndarray, y_test:
 if __name__ == "__main__" :
      
     #EVALUATE ON TRAINING
-    args = {    'sig_path': './quask/tests/latentrep_AtoHZ_to_ZZZ_35.h5', 
-                    'bkg_path': './quask/tests/latentrep_QCD_sig.h5',
-                    'test_bkg_path': './quask/tests/latentrep_QCD_sig_testclustering.h5',
+    args = {    'sig_path': './latentrep_AtoHZ_to_ZZZ_35.h5', 
+                    'bkg_path': './latentrep_QCD_sig.h5',
+                    'test_bkg_path': './latentrep_QCD_sig_testclustering.h5',
                     'unsup': False,
-                    'nqubits' : 8,
+                    'nqubits' : 10,
                     'feature_map': 'u_dense_encoding',
                     'run_type' : 'ideal',
                     'output_folder' : 'quantum_test',
                     'nu_param' : 0.01,
-                    'ntrain':  10000,
+                    'ntrain':  150,
                     'quantum': True,
                     'ntest': 0
             }
@@ -92,18 +89,18 @@ if __name__ == "__main__" :
     
     
     #EVALUATE ON TEST
-    test_args = {'sig_path': './quask/tests/latentrep_RSGraviton_WW_BR_15.h5', 
-                'bkg_path': './quask/tests/latentrep_RSGraviton_WW_NA_35.h5',
-                'test_bkg_path': './quask/tests/latentrep_QCD_sig_testclustering.h5',
+    test_args = {'sig_path': './latentrep_RSGraviton_WW_BR_15.h5', 
+                'bkg_path': './latentrep_RSGraviton_WW_NA_35.h5',
+                'test_bkg_path': './latentrep_QCD_sig_testclustering.h5',
                 'unsup': False,
-                'nqubits' : 8,
+                'nqubits' : 10,
                 'feature_map': 'u_dense_encoding',
                 'run_type' : 'ideal',
                 'nu_param' : 0.01,
                 'ntrain':0,
-                'kfolds': 1,
+                'kfolds': 5,
                 'quantum': True,
-                'ntest': 10000
+                'ntest': 150
                 }
 
     _, test_loader = get_data(test_args)
