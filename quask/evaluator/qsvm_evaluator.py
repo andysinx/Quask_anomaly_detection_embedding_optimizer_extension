@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 class OneClassQSVM(OneClassSVM):
   def __init__(self, kernel: Kernel):
     super().__init__(kernel="precomputed", nu=0.01, tol=1e-9)
-    self._nqubits = 4
+    self._nqubits = 10
     self._featuremap = kernel.to_qiskit_circuit()
     self._quantum_kernel = FidelityQuantumKernel(feature_map=self._featuremap)
     self._kernel_matrix_train = None
@@ -89,12 +89,51 @@ class OneClassQSVMEvaluator(KernelEvaluator):
         :param K: optional kernel matrix \kappa(X, X)
         :return: wrong_labels
         """
-
-        n = len(X)
+        
+        print("len X: ", len(X))
+        print("len y: ", len(y))
+        print("y: " , y)
+        y_1 = list(filter(lambda x: x == 1, y)) #1
+        print("len y_1: ", len(y_1))
+        y_2 = list(filter(lambda x: x == 0, y)) #0
+        print("len y_2: ", len(y_2))
+        print("y_1: ", y_1)
+        print("y_2: ", y_2)
+        
+        if int(len(y_1)/2) % 2 == 0: 
+          fst_part_y1 = y_1[:int(len(y_1)/2)]
+          fst_part_y2 = y_2[:int(len(y_2)/2)]
+          snd_part_y1 = y_1[int(len(y_1)/2):]
+          snd_part_y2 = y_2[int(len(y_2)/2):]
+        else:
+          fst_part_y1 = y_1[:int(round(len(y_1)/2))]
+          fst_part_y2 = y_2[:int((len(y_2)/2))]
+          snd_part_y1 = y_1[int(round(len(y_1)/2)):]
+          snd_part_y2 = y_2[int(len(y_2)/2):]
+         
+        y_train = np.array(fst_part_y1 + fst_part_y2)
+        print("len y_train: ", len(y_train))
+        y_val = np.array(snd_part_y1 + snd_part_y2)
+        print("len y_val: ", len(y_val))
+        
+        y_train = np.array(fst_part_y1 + fst_part_y2)
+        y_val = np.array(snd_part_y1 + snd_part_y2)
+        
+        print("y_train: ", y_train)
+        print("len y_train: ", len(y_train))
+        print("y_val: ", y_val)
+        print("len y_val: ", len(y_val))
+        
+        X_train = X[:len(y_train)] #1
+        print("len X_train: ", len(X_train))
+        X_val = X[len(y_val):] #0
+        print("len X_val: ", len(X_val))  
+        
+        '''n = len(X)
         X_train = X[:n//2]
         X_val = X[n//2:]
         y_train = y[:n//2]#y[0]
-        y_val = y[n//2:]#y[1:n]
+        y_val = y[n//2:]#y[1:n]'''
         #feature_map = kernel.to_qiskit_circuit()
         model = OneClassQSVM(kernel)
         model.fit(X_train, y_train)
@@ -109,12 +148,52 @@ class OneClassQSVMEvaluator(KernelEvaluator):
         :return: wrong_labels
         """
 
-        n = len(X)
+        '''n = len(X)
         X_train = X[:n//2]
         X_val = X[n//2:]
         y_train = y[:n//2]#y[0]
-        y_val = y[n//2:]#y[1:n]
+        y_val = y[n//2:]#y[1:n]'''
         #feature_map = kernel.to_qiskit_circuit()
+        print("len X: ", len(X))
+        print("len y: ", len(y))
+        print("y: " , y)
+        y_1 = list(filter(lambda x: x == 1, y)) #1
+        print("len y_1: ", len(y_1))
+        y_2 = list(filter(lambda x: x == 0, y)) #0
+        print("len y_2: ", len(y_2))
+        print("y_1: ", y_1)
+        print("y_2: ", y_2)
+        
+        if int(len(y_1)/2) % 2 == 0: 
+          fst_part_y1 = y_1[:int(len(y_1)/2)]
+          fst_part_y2 = y_2[:int(len(y_2)/2)]
+          snd_part_y1 = y_1[int(len(y_1)/2):]
+          snd_part_y2 = y_2[int(len(y_2)/2):]
+        else:
+          fst_part_y1 = y_1[:int(round(len(y_1)/2))]
+          fst_part_y2 = y_2[:int((len(y_2)/2))]
+          snd_part_y1 = y_1[int(round(len(y_1)/2)):]
+          snd_part_y2 = y_2[int(len(y_2)/2):]
+         
+        y_train = np.array(fst_part_y1 + fst_part_y2)
+        print("len y_train: ", len(y_train))
+        y_val = np.array(snd_part_y1 + snd_part_y2)
+        print("len y_val: ", len(y_val))
+        
+        y_train = np.array(fst_part_y1 + fst_part_y2)
+        y_val = np.array(snd_part_y1 + snd_part_y2)
+        
+        print("y_train: ", y_train)
+        print("len y_train: ", len(y_train))
+        print("y_val: ", y_val)
+        print("len y_val: ", len(y_val))
+        
+        X_train = X[:len(y_train)] #1
+        print("len X_train: ", len(X_train))
+        X_val = X[len(y_val):] #0
+        print("len X_val: ", len(X_val)) 
+        
+        
         print("test_set", X_train[0].shape)
         model = OneClassQSVM(kernel)
         model.fit(X_train, y_train)
