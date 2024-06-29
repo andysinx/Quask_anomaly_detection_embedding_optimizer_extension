@@ -276,19 +276,22 @@ class GenOptimizer(BaseKernelOptimizer):
                     print("curr_sol_if: ", best_solution)
                     best_fitness = neighbors_fitness[indx_delta_fitness]
                     print("curr_fit_if: ", best_fitness)
+                    # Add the best found solution to the new population
+                    ga_instance.best_solutions.append(best_solution) 
+                    ga_instance.best_solutions_fitness.append(best_fitness) 
                 elif delta_fitness[indx_delta_fitness] > 0 and random.random() < math.exp(-delta_fitness[indx_delta_fitness] / t):
                     best_solution = neighbor 
                     print("curr_sol_elif: ", best_solution)
                     best_fitness = neighbor[indx_delta_fitness]
                     print("curr_fit_elif: ", best_fitness)
+                    # Add the best found solution to the new population
+                    ga_instance.best_solutions.append(best_solution) 
+                    ga_instance.best_solutions_fitness.append(best_fitness) 
         
                 print(f"Iteration {i}, Temperature {t:.3f}, Best Evaluation {best_fitness:.2f}")
                 i = i + 1
                     
                 print("PRIMA DELL APPEND")
-                # Add the best found solution to the new population
-                ga_instance.best_solutions.append(best_solution) 
-                ga_instance.best_solutions_fitness.append(best_fitness) 
                 print("Fine APPEND")
                 
                
